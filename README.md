@@ -355,10 +355,4 @@ with HTTP status:
 * Role-based authorization restricts access to resources.
 * Secret configuration is stored in environment variables.
 
-## Author
 
-**Lavanya Reddy**
-
-## License
-
-This project is created for educational and assignment purposes.
