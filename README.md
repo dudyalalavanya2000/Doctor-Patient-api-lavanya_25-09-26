@@ -1,505 +1,364 @@
-# FastAPI Doctor and Patient Management API
+# Doctor Patient Management API
 
-This project is a simple REST API built using FastAPI to manage doctors and patients.
+A RESTful API built using **FastAPI** for managing doctors and patients. The application includes JWT-based authentication, role-based authorization, patient-doctor assignment, validation, and error handling.
 
-## Objective
+## Project Overview
 
-The objective of this project is to build a REST API using FastAPI with:
+The Doctor Patient Management API provides functionality for:
 
+* User registration and login
+* JWT authentication
+* Admin and Doctor roles
 * Doctor management
 * Patient management
-* Pydantic validation
+* Assigning patients to doctors
+* Role-based patient access
+* Pydantic data validation
 * Error handling
-* In-memory data storage
-* API testing using Swagger UI
+* Swagger API documentation
 
 ## Technologies Used
 
 * Python 3.9+
 * FastAPI
+* SQLAlchemy
 * Pydantic
+* SQLite
+* JWT
+* Python-Jose
+* Pwdlib
 * Uvicorn
+* Python-Dotenv
 
 ## Project Structure
 
 ```text
 doctor-patient-api/
 │
-├── main.py
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   ├── schemas.py
+│   │
+│   ├── auth/
+│   │   ├── __init__.py
+│   │   ├── router.py
+│   │   └── utils.py
+│   │
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── doctors.py
+│   │   └── patients.py
+│   │
+│   └── services/
+│       ├── __init__.py
+│       ├── doctor_service.py
+│       └── patient_service.py
+│
 ├── requirements.txt
-└── README.md
+├── README.md
+└── .gitignore
 ```
-
-## API Endpoints
-
-### Doctors
-
-| Method | Endpoint               | Description        |
-| ------ | ---------------------- | ------------------ |
-| POST   | `/doctors`             | Create a doctor    |
-| GET    | `/doctors`             | Get all doctors    |
-| GET    | `/doctors/{doctor_id}` | Get a doctor by ID |
-
-### Patients
-
-| Method | Endpoint    | Description      |
-| ------ | ----------- | ---------------- |
-| POST   | `/patients` | Create a patient |
-| GET    | `/patients` | Get all patients |
 
 ## Installation
 
-Open the project folder in VS Code.
+### 1. Clone the repository
 
-Open the terminal and install the required packages:
+```bash
+git clone https://github.com/dudyalalavanya2000/doctor-patient-api.git
+```
+
+### 2. Navigate to the project
+
+```bash
+cd doctor-patient-api
+```
+
+### 3. Create a virtual environment
+
+```bash
+python -m venv venv
+```
+
+### 4. Activate the virtual environment
+
+**Windows:**
+
+```bash
+venv\Scripts\activate
+```
+
+**Linux/Mac:**
+
+```bash
+source venv/bin/activate
+```
+
+### 5. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Requirements File
+## Environment Configuration
 
-The `requirements.txt` file contains:
+Create a `.env` file in the project root:
 
-```text
-fastapi
-uvicorn
-pydantic[email]
+```env
+SECRET_KEY=your-secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-## Execute the Project
+Do not commit the `.env` file to GitHub.
 
-### Step 1: Open the Project
+## Run the Application
 
-Open the project in VS Code.
-
-### Step 2: Install Dependencies
+Start the FastAPI application using:
 
 ```bash
-pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
 
-### Step 3: Start the Server
-
-```bash
-uvicorn main:app --reload
-```
-
-### Step 4: Server Output
+The application will be available at:
 
 ```text
-INFO:     Uvicorn running on http://127.0.0.1:8000
-INFO:     Application startup complete.
+http://127.0.0.1:8000
 ```
 
 ## Swagger Documentation
 
-Open the following URL in your browser:
+FastAPI provides interactive API documentation through Swagger UI.
+
+Open:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-Swagger UI allows you to:
+Swagger can be used to register users, login, authorize using JWT, create doctors and patients, assign patients, and test the APIs.
 
-* View all API endpoints
-* Test POST and GET requests
-* Test validation
-* Test error handling
-* View API responses
+## Authentication
 
-## Swagger Execution Flow
+The application uses **JWT Bearer Token authentication**.
+
+### Register
+
+```http
+POST /auth/register
+```
+
+Example:
+
+```json
+{
+  "name": "Admin",
+  "email": "admin@gmail.com",
+  "password": "admin123456",
+  "role": "admin"
+}
+```
+
+Supported roles:
+
+* `admin`
+* `doctor`
+
+### Login
+
+```http
+POST /auth/login
+```
+
+The login endpoint uses OAuth2 password form authentication.
+
+Use:
 
 ```text
-Start FastAPI Server
-        ↓
-Open Swagger UI
-        ↓
-http://127.0.0.1:8000/docs
-        ↓
-Select API Endpoint
-        ↓
-Click "Try it out"
-        ↓
-Enter Request Data
-        ↓
-Click "Execute"
-        ↓
-View API Response
+grant_type: password
+username: registered email
+password: registered password
 ```
 
-# Doctor APIs
-
-## Create Doctor
-
-**Method:** `POST`
-
-**Endpoint:**
-
-```text
-/doctors
-```
-
-Enter the following JSON in Swagger:
+The API returns an access token:
 
 ```json
 {
-  "name": "Dr. Rathi",
-  "specialization": "Cardiology",
-  "email": "rathi@gmail.com",
-  "is_active": true
+  "access_token": "your-jwt-token",
+  "token_type": "bearer"
 }
 ```
 
-### Output
+Use this token to authorize protected endpoints.
 
-```json
-{
-  "doctor_id": 1,
-  "name": "Dr. Rathi",
-  "specialization": "Cardiology",
-  "email": "rathi@gmail.com",
-  "is_active": true
-}
-```
+## API Endpoints
 
-## Get All Doctors
+### Authentication
 
-**Method:** `GET`
+| Method | Endpoint         | Description                  |
+| ------ | ---------------- | ---------------------------- |
+| POST   | `/auth/register` | Register a new user          |
+| POST   | `/auth/login`    | Login and generate JWT token |
 
-**Endpoint:**
-
-```text
-/doctors
-```
-
-### Output
-
-```json
-[
-  {
-    "doctor_id": 1,
-    "name": "Dr. Rathi",
-    "specialization": "Cardiology",
-    "email": "rathi@gmail.com",
-    "is_active": true
-  }
-]
-```
-
-## Get Doctor by ID
-
-**Method:** `GET`
-
-**Endpoint:**
-
-```text
-/doctors/{doctor_id}
-```
-
-Enter:
-
-```text
-1
-```
-
-### Output
-
-```json
-{
-  "doctor_id": 1,
-  "name": "Dr. Rathi",
-  "specialization": "Cardiology",
-  "email": "rathi@gmail.com",
-  "is_active": true
-}
-```
-
-# Patient APIs
-
-## Create Patient
-
-**Method:** `POST`
-
-**Endpoint:**
-
-```text
-/patients
-```
-
-Enter the following JSON in Swagger:
-
-```json
-{
-  "name": "Meena",
-  "age": 25,
-  "phone": "8688094563"
-}
-```
-
-### Output
-
-```json
-{
-  "patient_id": 1,
-  "name": "Meena",
-  "age": 25,
-  "phone": "8688094563"
-}
-```
-
-## Get All Patients
-
-**Method:** `GET`
-
-**Endpoint:**
-
-```text
-/patients
-```
-
-### Output
-
-```json
-[
-  {
-    "patient_id": 1,
-    "name": "Meena",
-    "age": 25,
-    "phone": "8688094563"
-  }
-]
-```
-
-# Validation
-
-The project uses **Pydantic** to validate request data.
-
-## Doctor Email Validation
-
-The doctor email must be in a valid email format.
-
-### Valid Input
-
-```json
-{
-  "name": "Dr. Rathi",
-  "specialization": "Cardiology",
-  "email": "rathi@gmail.com",
-  "is_active": true
-}
-```
-
-### Invalid Input
-
-```json
-{
-  "name": "Dr. Rathi",
-  "specialization": "Cardiology",
-  "email": "wrong-email",
-  "is_active": true
-}
-```
-
-The API rejects the request because the email format is invalid.
-
-## Patient Age Validation
-
-The patient age must be greater than `0`.
-
-### Valid Input
-
-```json
-{
-  "name": "Meena",
-  "age": 25,
-  "phone": "8688094563"
-}
-```
-
-### Invalid Input
-
-```json
-{
-  "name": "Meena",
-  "age": 0,
-  "phone": "8688094563"
-}
-```
-
-The API rejects the request because the patient age must be greater than `0`.
-
-## Patient Phone Validation
-
-The patient phone number must contain exactly 10 characters.
-
-### Valid Input
-
-```json
-{
-  "name": "Meena",
-  "age": 25,
-  "phone": "8688094563"
-}
-```
-
-### Invalid Input
-
-```json
-{
-  "name": "Meena",
-  "age": 25,
-  "phone": "123"
-}
-```
-
-The API rejects the request because the phone number does not contain 10 characters.
-
-# Error Handling
-
-The API uses `HTTPException` to handle errors.
-
-## Doctor Not Found
-
-For example:
-
-```text
-GET /doctors/100
-```
-
-### Output
-
-```text
-404 Not Found
-```
-
-```json
-{
-  "detail": "Doctor not found"
-}
-```
-
-# Data Storage
-
-The project uses **in-memory storage**.
-
-Doctors and patients are stored in Python lists.
-
-```python
-doctors = []
-patients = []
-```
-
-The data is available only while the FastAPI application is running.
-
-The data will be lost when the application is restarted.
-
-# Complete Execution Flow
-
-```text
-1. Open project in VS Code
-          ↓
-2. Open Terminal
-          ↓
-3. Install dependencies
-   pip install -r requirements.txt
-          ↓
-4. Start FastAPI server
-   uvicorn main:app --reload
-          ↓
-5. Open Swagger UI
-   http://127.0.0.1:8000/docs
-          ↓
-6. Create Doctor
-   POST /doctors
-          ↓
-7. Get Doctors
-   GET /doctors
-          ↓
-8. Get Doctor by ID
-   GET /doctors/{doctor_id}
-          ↓
-9. Create Patient
-   POST /patients
-          ↓
-10. Get Patients
-    GET /patients
-          ↓
-11. Test Email Validation
-          ↓
-12. Test Age Validation
-          ↓
-13. Test Phone Validation
-          ↓
-14. Test Doctor Not Found Error
-```
-
-# API Summary
+### Doctors
 
 | Method | Endpoint               | Description      |
 | ------ | ---------------------- | ---------------- |
-| POST   | `/doctors`             | Create a doctor  |
-| GET    | `/doctors`             | Get all doctors  |
+| GET    | `/doctors/`            | Get all doctors  |
+| POST   | `/doctors/`            | Create a doctor  |
 | GET    | `/doctors/{doctor_id}` | Get doctor by ID |
-| POST   | `/patients`            | Create a patient |
-| GET    | `/patients`            | Get all patients |
+| PUT    | `/doctors/{doctor_id}` | Update doctor    |
+| DELETE | `/doctors/{doctor_id}` | Delete doctor    |
 
-# API Documentation URLs
+### Patients
 
-### Swagger UI
+| Method | Endpoint                                           | Description                     |
+| ------ | -------------------------------------------------- | ------------------------------- |
+| GET    | `/patients/`                                       | Get patients based on user role |
+| POST   | `/patients/`                                       | Create a patient                |
+| GET    | `/patients/{patient_id}`                           | Get a patient                   |
+| PUT    | `/patients/{patient_id}`                           | Update a patient                |
+| PUT    | `/patients/{patient_id}/assign-doctor/{doctor_id}` | Assign patient to doctor        |
 
-```text
-http://127.0.0.1:8000/docs
+## Role-Based Access
+
+### Admin
+
+An Admin can:
+
+* View all patients
+* Create doctors
+* Update doctors
+* Delete doctors
+* Assign patients to doctors
+* Access patient records
+
+### Doctor
+
+A Doctor can:
+
+* View only assigned patients
+* View an individual assigned patient
+* Update only assigned patients
+
+A Doctor cannot access or update patients assigned to another doctor.
+
+## Patient Assignment
+
+An Admin can assign a patient to a doctor using:
+
+```http
+PUT /patients/{patient_id}/assign-doctor/{doctor_id}
 ```
 
-### ReDoc
+Example:
 
 ```text
-http://127.0.0.1:8000/redoc
+PUT /patients/4/assign-doctor/2
 ```
 
-# Expected Output
+This assigns Patient ID `4` to Doctor ID `2`.
 
-### Successful Doctor Creation
+## Validation
+
+The API uses Pydantic validation for request data.
+
+Examples:
+
+* Patient age must be greater than `0`
+* Phone number must contain 10–15 digits
+* Email addresses must be valid
+* Password must contain at least 6 characters
+
+Invalid input returns an appropriate validation error response.
+
+## Error Handling
+
+The API handles common errors including:
+
+* Invalid login credentials
+* Duplicate email
+* User not found
+* Doctor not found
+* Patient not found
+* Unauthorized access
+* Insufficient permissions
+* Invalid request data
+
+HTTP status codes such as `400`, `401`, `403`, `404`, and `422` are used where appropriate.
+
+## Testing
+
+The APIs can be tested using **Swagger UI**.
+
+Recommended testing flow:
 
 ```text
-201 Created
+Register Admin
+      ↓
+Register Doctor User
+      ↓
+Login as Admin
+      ↓
+Create Doctor
+      ↓
+Create Patients
+      ↓
+Assign Patient to Doctor
+      ↓
+Login as Doctor
+      ↓
+View Assigned Patients
+      ↓
+Test Unauthorized Patient Access
+      ↓
+Test Patient Update Permissions
 ```
+
+## Example Role-Based Access Test
+
+If Patient `4` is assigned to Doctor `2`:
+
+```text
+Doctor 2 → GET /patients/
+```
+
+The doctor can see Patient `4`.
+
+If Patient `3` is not assigned to Doctor `2`:
+
+```text
+Doctor 2 → GET /patients/3
+```
+
+The API returns:
 
 ```json
 {
-  "doctor_id": 1,
-  "name": "Dr. Rathi",
-  "specialization": "Cardiology",
-  "email": "rathi@gmail.com",
-  "is_active": true
+  "detail": "You can access only your assigned patients"
 }
 ```
 
-### Successful Patient Creation
+with HTTP status:
 
 ```text
-201 Created
+403 Forbidden
 ```
 
-```json
-{
-  "patient_id": 1,
-  "name": "Meena",
-  "age": 25,
-  "phone": "8688094563"
-}
-```
+## Security
 
-### Invalid Input
+* Passwords are stored using password hashing.
+* JWT tokens are used for authentication.
+* Protected endpoints require authentication.
+* Role-based authorization restricts access to resources.
+* Secret configuration is stored in environment variables.
 
-```text
-422 Unprocessable Entity
-```
+## Author
 
-### Doctor Not Found
+**Lavanya Reddy**
 
-```text
-404 Not Found
-```
+## License
 
+This project is created for educational and assignment purposes.
